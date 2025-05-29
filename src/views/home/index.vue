@@ -74,12 +74,13 @@
   }
   .layout {
     width: clamp(1200px,80vw,600px);
-    height: 600px;
+    height: 100%;
     display: flex;
     justify-content: space-between;
   }
   .aside {
     width: 200px;
+    height: 100%;
     background-color: aliceblue;
   }
   .avatarImg {
@@ -111,11 +112,13 @@
   }
   .container {
     width: calc(100% - 200px);
+    height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
   }
   .body {
     flex: 1;
+    height: calc(100% - 70px);
   }
 </style>
