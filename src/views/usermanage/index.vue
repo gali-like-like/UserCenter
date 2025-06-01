@@ -14,19 +14,18 @@
             clearable
             size="large"
         >
-          <el-option label="正常" value="正常" />
-          <el-option label="禁用" value="封号" />
+          <el-option v-for="item in options" :key="item.id" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="onSubmit" size="large">Query</el-button>
+        <el-button type="primary" size="large" @click="getPageData(currentPage)">Query</el-button>
       </el-form-item>
     </el-form>
     <div class="tableArea">
       <el-table :data="userData" row-class-name="tableRow" :header-row-class-name="tableHeader">
         <el-table-column label="Account" width="180" prop="avatarUrl" >
           <template #default="scope">
-            <div class="accountArea">
+            <div class="accountArea" @click="jumpSelf">
               <el-avatar :src="scope.row.avatarUrl"></el-avatar>
               <el-text>{{scope.row.userName}}</el-text>
             </div>
@@ -58,8 +57,9 @@
         </el-table-column>
       </el-table>
       <el-pagination
-          :hide-on-single-page="value"
           :total="total"
+          :current-page="currentPage"
+          background
           layout="prev, pager, next"
           @current-change="getPageData"
       />
@@ -72,7 +72,28 @@
   import { ref, reactive } from 'vue';
   import {ElMessageBox} from "element-plus";
   import messageBox from "@/utils/messageBox.js";
+  import router from '@/router/index.js';
   const value = ref(false);
+  const options = reactive([
+    {
+      label:"正常",
+      value: 0,
+      id: 1
+    },
+    {
+      label:"封号",
+      value: 1,
+      id: 2
+    },
+    {
+      label:"全部",
+      value: 2,
+      id: 3
+    }
+  ])
+  const jumpSelf = () => {
+    router.push('/home/self')
+  }
 
   function handleChangeStatus(index,row) {
     // todo 弹窗
@@ -80,6 +101,7 @@
       request.get(`/api/user/forbid?account=${row.userAccount}`);
     })
   }
+
   function handleDelete(index,row) {
     messageBox("删除提示","是否删除该用户","warnning",() => {
       request.delete("/api/user/delete",{
@@ -97,13 +119,22 @@
       });
     });
   }
+  const condition = reactive({
+    userName: null,
+    userAccount: null,
+    userStatus: 2,
+    current: 1,
+    pageSize: 10
+  })
+
   const userData = ref([]);
   const total = ref([]);
+  const currentPage = ref(1);
+  debugger;
   const getPageData = (current) => {
-    request.post("/api/user/page",{
-      current: current,
-      pageSize: 10
-    }).then(res => {
+    condition.current = current;
+    
+    request.post("/api/user/page",condition).then(res => {
       if (res.code === 200) {
         userData.value = res.data.records;
         total.value = res.data.total;
@@ -111,19 +142,6 @@
     })
   }
   getPageData(1);
-
-  const condition = reactive({
-    userName: null,
-    userAccount: null,
-    userPhone: null,
-    userStatus: null
-  })
-
-
-  const onSubmit = () => {
-    // 条件查询
-  }
-
 </script>
 
 <style scoped>
