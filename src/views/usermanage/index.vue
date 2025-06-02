@@ -58,9 +58,9 @@
       </el-table>
       <el-pagination
           :total="total"
-          :current-page="currentPage"
           background
           layout="prev, pager, next"
+          v-model:current-page="page"
           @current-change="getPageData"
       />
     </div>
@@ -129,9 +129,9 @@
 
   const userData = ref([]);
   const total = ref([]);
-  const currentPage = ref(1);
-  debugger;
+  const page = ref(1);
   const getPageData = (current) => {
+    console.log(page.value);
     condition.current = current;
     
     request.post("/api/user/page",condition).then(res => {
@@ -166,6 +166,7 @@
   .el-pagination {
     display: flex;
     justify-content: center; /* 水平居中 */
+    height: 40px;
   }
   .conditionArea {
     display: flex;

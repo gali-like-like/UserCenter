@@ -1,6 +1,7 @@
 import { createRouter,createWebHistory,createWebHashHistory } from 'vue-router'
 import request from '@/utils/request.js'
 import {userInfoStore} from "@/store/useUserInfo.js";
+import {baseStore} from '@/store/useBaseStore';
 const routes = [
     {
         path: '/login',
@@ -51,9 +52,13 @@ router.beforeEach((to, from, next) => {
                 next("/login");
             } else {
                 const userInfo = userInfoStore();
+                const useBaseStore = baseStore();
                 if (!userInfo.user) {
                     console.dir(userInfo);
                     userInfo.changeUser(res.data);
+                    useBaseStore.changeUser(res.data.userName,res.data.userAccount,res.data.hiddenPhone,
+                        res.data.hiddenEmail);
+                    console.log(`当前用户:${JSON.stringify(useBaseStore.user)}`);
                 }
                 next();
             }

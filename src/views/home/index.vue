@@ -112,13 +112,17 @@
   }
   .container {
     width: calc(100% - 200px);
-    height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
   }
   .body {
     flex: 1;
-    height: calc(100% - 70px);
+    height: 100%;
+    display: flex;
+    justify-content: space-evenly;
+    background-image: url("/src/assets/bg1.png");
+    background-size: cover;
+    background-repeat: no-repeat;
   }
 </style>
