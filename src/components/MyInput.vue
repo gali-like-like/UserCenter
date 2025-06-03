@@ -8,7 +8,7 @@
     <div class="content">
         <input type="text" :value="model" @input="e => model = e.target.value" :disabled="isEdit">
         <slot name="suffix">
-            
+
         </slot>
     </div>
 </template>
@@ -21,12 +21,15 @@
     }
     .content input {
         outline:none;
+        font-size: 20px;
+        color: black;
         background-color: transparent;
         border: none;
-        border-bottom: 1px solid white;    
+        border-bottom: 1px solid white;
     }
     .content input:disabled {
         background-color: transparent;
         border-color: transparent;
+        color: black;
     }
 </style>

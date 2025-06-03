@@ -28,13 +28,13 @@
           <el-image :src="systemUrl" lazy />
         </li>
         <li>
-          <router-link to="/home/users" @click="() => activeIndex = 1" ref="home" :style="activeIndex === 1?activeLi:normalLi">用户首页</router-link>
+          <router-link to="/home/users">用户首页</router-link>
         </li>
         <li>
-          <router-link to="/home/usermanage" @click="() => activeIndex = 2" ref="userManage" :style="activeIndex === 2?activeLi:normalLi">用户管理</router-link>
+          <router-link to="/home/usermanage">用户管理</router-link>
         </li>
         <li>
-          <router-link to="/home/self" @click="() => activeIndex = 3" ref="self" :style="activeIndex === 3?activeLi:normalLi">个人信息</router-link>
+          <router-link to="/home/self" >个人信息</router-link>
         </li>
       </ul>
     </div>
@@ -55,7 +55,7 @@
 
 <style scoped>
 
-  .activeLi {
+  .router-link-active {
     color: #36c578;
   }
 

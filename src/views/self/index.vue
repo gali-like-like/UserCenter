@@ -1,11 +1,14 @@
 <script setup>
-  import { ref } from 'vue';
+  import { ref, useTemplateRef } from 'vue';
   import {View} from "@element-plus/icons-vue";
   import MyInput from '@/components/MyInput.vue';
   import { userInfoStore } from '@/store/useUserInfo.js';
   import messageBox  from '@/utils/messageBox.js';
   import messageDialog from '@/utils/messageDialog.js';
   import request from '@/utils/request.js';
+  import {passwordStore} from "@/store/usePasswordStore.js";
+  import {phoneRegex, emailRegex, passwordRegex} from "@/utils/regex.js";
+
   const userStore = userInfoStore();
   const showCompletePhone = () => {
     request.post("/api/user/phone").then(res => {
@@ -22,9 +25,9 @@
   const editOrSave = () => {
     isDisabled.value = !isDisabled.value;
     // todo 发送请求修改数据并获取当前用户
-    console.log(userStore.baseUser);
+    console.log(`修改后的数据:${JSON.stringify(userStore.user)}`);
     if (isDisabled.value) {
-    request.post("/api/user/edit",userStore.baseUser,data).then(res => {
+    request.post("/api/user/edit",userStore.user).then(res => {
       if (res.code === 200)
         userStore.changeUser(res.data);
       })
@@ -32,18 +35,110 @@
 
   }
   const isDisabled = ref(true);
+
+
+  const usePdStore = passwordStore();
+  const showDialog = ref(false);
+  const updatePassword = () => {
+    // 修改密码
+    pdRef.value.validate((valid) => {
+      if (valid) {
+        request.post("/api/user/password",usePdStore.passwordForm).then(res => {
+          if (res.code === 200) {
+            showDialog.value = true;
+          } else {
+            showDialog.value = false;
+            pdRef.value.resetFields();
+          }
+        });
+      } else {
+        console.log('提交失败!')
+        return false;
+      }
+    })
+  }
+  const rules = ({
+    newPassword: [
+      { required: true, message: '请输入密码!', trigger: 'blur' },
+      { min: 6, message: '密码长度必须超过六个字符', trigger: 'blur' },
+      { pattern:  passwordRegex, message: '密码必须由数字组成,且长度至少6位',trigger: 'blur'}
+    ],
+    tryPassword: [
+      { required: true, message: '请输入密码!', trigger: 'blur' },
+      { min: 6, message: '密码长度必须超过六个字符', trigger: 'blur' },
+      { pattern: passwordRegex, message: '密码必须由数字组成,且长度至少6位', trigger: 'blur' }
+    ]
+  });
+  const pdRef = useTemplateRef("pdRef");
+
+  const fileList = ref([
+    {
+      name: 'element-plus-logo.svg',
+      url: 'https://element-plus.org/images/element-plus-logo.svg',
+    },
+    {
+      name: 'element-plus-logo2.svg',
+      url: 'https://element-plus.org/images/element-plus-logo.svg',
+    },
+  ])
+
+  const handleRemove = (file, uploadFiles) => {
+    console.log(file, uploadFiles);
+    console.log(`file type:${typeof file}`);
+  }
+
+  const handlePreview = (uploadFile) => {
+    console.dir(uploadFile)
+
+  }
+
 </script>
 
 <template>
   <div class="mainContent">
     <div class="header">
       <el-image style="width: 100px; height: 100px" :src="userStore.user.avatarUrl" :fit="cover" class="headerImg"/>
+      <el-upload
+          v-model:file-list="fileList"
+          class="upload-demo"
+          multiple
+          :on-preview="handlePreview"
+          :on-remove="handleRemove"
+          :limit="3"
+      ></el-upload>
       <div class="infoArea">
         <div>
-          <el-text id="nameText" type="primary">{{userStore.username}}</el-text>
-          <el-text id="accountText" type="danger">{{userStore.user.userAccount}}</el-text>
-          <el-text id="userRoleText" type="primary">{{userStore.user.userRole}}</el-text>
-          <el-text id="userStatusText" type="primary">{{ userStore.user.userStatus }}</el-text>
+          <span id="nameText">{{userStore.username}}</span>
+          <span id="accountText">{{userStore.user.userAccount}}</span>
+          <span id="userRoleText">{{userStore.user.userRole}}</span>
+          <span id="userStatusText">{{ userStore.user.userStatus }}</span>
+<!--          <el-text id="nameText" type="primary" truncated="truncated">{{userStore.username}}</el-text>-->
+<!--          <el-text id="accountText" type="danger">{{userStore.user.userAccount}}</el-text>-->
+<!--          <el-text id="userRoleText" type="primary">{{userStore.user.userRole}}</el-text>-->
+<!--          <el-text id="userStatusText" type="primary">{{ userStore.user.userStatus }}</el-text>-->
+          <el-button type="primary" @click="showDialog = true">修改密码</el-button>
+
+          <el-dialog v-model="showDialog" title="修改密码" width="500" >
+            <el-form :model="usePdStore.passwordForm" :rules="rules" ref="pdRef">
+                <el-form-item prop="newPassword">
+                  <el-input v-model="usePdStore.passwordForm.newPassword"
+                            placeholder="请输入密码" type="password" autocomplete="off" />
+                </el-form-item>
+                <el-form-item prop="tryPassword">
+                  <el-input v-model="usePdStore.passwordForm.tryPassword"
+                            placeholder="请输入确认密码" type="password"  />
+                </el-form-item>
+            </el-form>
+            <template #footer>
+              <div class="dialog-footer">
+                <el-button @click="showDialog = false" size="large">Cancel</el-button>
+                <el-button type="primary" @click="updatePassword" size="large">
+                  Confirm
+                </el-button>
+              </div>
+            </template>
+          </el-dialog>
+
         </div>
         <el-button type="primary" @click="editOrSave">{{ isDisabled?'编辑':'保存' }}</el-button>
       </div>
@@ -79,7 +174,7 @@
     display: grid;
     grid-template-columns: repeat(4,1fr);
     /* grid-template-rows: repeat(3,1fr); */
-    grid-template-rows: repeat(3,minmax(100px,1fr));
+    grid-template-rows: repeat(3,minmax(100px,150px));
     font-size: 24px;
     height: calc(100% - 100px);
   }
@@ -106,6 +201,11 @@
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
+    align-items: flex-start;
+    margin-left: 10px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    flex-grow: 1;
   }
 
   .infoArea > .el-button {
@@ -117,7 +217,7 @@
   } */
   #nameText {
     font-size: 24px;
-    color: black;
+    color: #eb3131;
     font-weight: bold;
   }
   #accountText {
