@@ -8,6 +8,8 @@
   import request from '@/utils/request.js';
   import {passwordStore} from "@/store/usePasswordStore.js";
   import {phoneRegex, emailRegex, passwordRegex} from "@/utils/regex.js";
+  import calculateFileSHA256 from "@/utils/sha256Tool.js";
+  import message from "@/utils/messageDialog.js";
 
   const userStore = userInfoStore();
   const showCompletePhone = () => {
@@ -70,52 +72,49 @@
     ]
   });
   const pdRef = useTemplateRef("pdRef");
-
-  const fileList = ref([
-    {
-      name: 'element-plus-logo.svg',
-      url: 'https://element-plus.org/images/element-plus-logo.svg',
-    },
-    {
-      name: 'element-plus-logo2.svg',
-      url: 'https://element-plus.org/images/element-plus-logo.svg',
-    },
-  ])
-
-  const handleRemove = (file, uploadFiles) => {
-    console.log(file, uploadFiles);
-    console.log(`file type:${typeof file}`);
+  const fileTypes = ['image/jpeg','image/png','image/jpg'];
+  const beforeUpload = (rawFile) => {
+    if (!fileTypes.includes(rawFile.type)) {
+      message("图片格式必须是png,jpg,jpeg","error");
+    } else if (rawFile.size / 1024 / 1024 > 10) {
+      message("图片大小必须小于10MB");
+    }
   }
 
-  const handlePreview = (uploadFile) => {
-    console.dir(uploadFile)
-
+  // 响应成功后该干的事情
+  const handleAvatarSuccess = (
+      response,
+      uploadFile,
+  ) => {
+    console.log(`响应结果:${JSON.stringify(response)}`);
+    userInfoStore().changeAvatarUrl(response.data);
   }
 
+  const onSubmit = (option) => {
+    const fileHash = calculateFileSHA256(option.file);
+    let formdata = new FormData();
+    formdata.append("file",option.file);
+    formdata.append("fileHash",fileHash);
+    request.post("/api/user/upload",formdata,{
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    }).then(res => {
+      console.log(res);
+    })
+  }
 </script>
 
 <template>
   <div class="mainContent">
     <div class="header">
       <el-image style="width: 100px; height: 100px" :src="userStore.user.avatarUrl" :fit="cover" class="headerImg"/>
-      <el-upload
-          v-model:file-list="fileList"
-          class="upload-demo"
-          multiple
-          :on-preview="handlePreview"
-          :on-remove="handleRemove"
-          :limit="3"
-      ></el-upload>
       <div class="infoArea">
         <div>
           <span id="nameText">{{userStore.username}}</span>
           <span id="accountText">{{userStore.user.userAccount}}</span>
           <span id="userRoleText">{{userStore.user.userRole}}</span>
           <span id="userStatusText">{{ userStore.user.userStatus }}</span>
-<!--          <el-text id="nameText" type="primary" truncated="truncated">{{userStore.username}}</el-text>-->
-<!--          <el-text id="accountText" type="danger">{{userStore.user.userAccount}}</el-text>-->
-<!--          <el-text id="userRoleText" type="primary">{{userStore.user.userRole}}</el-text>-->
-<!--          <el-text id="userStatusText" type="primary">{{ userStore.user.userStatus }}</el-text>-->
           <el-button type="primary" @click="showDialog = true">修改密码</el-button>
 
           <el-dialog v-model="showDialog" title="修改密码" width="500" >
@@ -145,7 +144,9 @@
     </div>
     <div class="main">
       <el-text>头像</el-text>
-      <el-image :src="userStore.user.avatarUrl" :fit="cover"></el-image>
+      <el-image :src="userStore.user.avatarUrl" :fit="cover" v-if="isDisabled"></el-image>
+      <el-upload :on-success="handleAvatarSuccess" :before-upload="beforeUpload" :http-request="onSubmit" :with-credentials="true" class="uploadEle" v-if="!isDisabled">
+      </el-upload>
       <el-text>账号</el-text>
       <el-text>{{userStore.user.userAccount}}</el-text>
       <el-text>昵称</el-text>

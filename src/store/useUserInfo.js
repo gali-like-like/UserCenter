@@ -5,6 +5,9 @@ export const userInfoStore = defineStore("userInfo",() => {
     const changeUser = (newUser) => {
         user.value = newUser;
     }
+    const changeAvatarUrl = (newAvatarUrl) => {
+        user.value.avatarUrl = newAvatarUrl;
+    }
     const avatarUrl = computed(() => user.value?user.value.avatarUrl:null);
     const username = computed(() => user.value?user.value.userName:null);
     const baseUser = reactive({
@@ -14,6 +17,6 @@ export const userInfoStore = defineStore("userInfo",() => {
             userAccount: user.userAccount
     })
     return {
-        changeUser,username,avatarUrl,user,baseUser
+        changeUser,username,avatarUrl,user,baseUser,changeAvatarUrl
     }
 })

@@ -11,6 +11,10 @@ const routes = [
         component: () => import('@/views/regedit/index.vue')
     },
     {
+        path: '/test',
+        component: () => import('@/views/test/index.vue')
+    },
+    {
         path:'/home',
         component: () => import('@/views/home/index.vue'),
         children:[
@@ -40,7 +44,7 @@ const router = createRouter({
     history:createWebHashHistory(),
     routes,
 })
-const authPath = ["/login", "/regedit", "/users"]
+const authPath = ["/login", "/regedit", "/users","/test"];
 router.beforeEach((to, from, next) => {
     // authPath.includes(to.path) ? next() : from.path = "/login"
     console.log(`${from.path} => ${to.path}` );

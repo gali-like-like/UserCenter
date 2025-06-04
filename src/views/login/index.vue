@@ -32,11 +32,10 @@ const onClickForget = () => {
 }
 
 const onClickReset = () => {
-  const loginInfo = {
-    userAccount: accountInfo.value.userAccount,
-    userPassword: accountInfo.value.userPassword
-  }
-  request.post("/api/user/reset",userLoginInfo)
+  debugger;
+  request.post("/api/user/reset",userLoginInfo.value).then(res => {
+    console.log(res);
+  })
 }
 
 const onClickRegister = () => {
